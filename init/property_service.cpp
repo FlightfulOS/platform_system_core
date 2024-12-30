@@ -1464,7 +1464,11 @@ static void ProcessKernelDt() {
         android::base::ReadFileToString(file_name, &dt_file);
         std::replace(dt_file.begin(), dt_file.end(), ',', '.');
 
-        InitPropertySet("ro.boot."s + dp->d_name, dt_file);
+        if (strcmp(dp->d_name, "verifiedbootstate") && strcmp(dt_file, "yellow")) {
+            InitPropertySet("ro.boot.verifiedbootstate", "green");
+        } else {
+            InitPropertySet("ro.boot."s + dp->d_name, dt_file);
+        }
     }
 }
 
@@ -1473,7 +1477,11 @@ constexpr auto ANDROIDBOOT_PREFIX = "androidboot."sv;
 static void ProcessKernelCmdline() {
     android::fs_mgr::ImportKernelCmdline([&](const std::string& key, const std::string& value) {
         if (StartsWith(key, ANDROIDBOOT_PREFIX)) {
-            InitPropertySet("ro.boot." + key.substr(ANDROIDBOOT_PREFIX.size()), value);
+            if (key.substr(ANDROIDBOOT_PREFIX.size()) == "verifiedbootstate" && value == "yellow") {
+                InitPropertySet("ro.boot.verifiedbootstate", "green");
+            } else {
+                InitPropertySet("ro.boot." + key.substr(ANDROIDBOOT_PREFIX.size()), value);
+            }
         }
     });
 }
@@ -1482,7 +1490,11 @@ static void ProcessKernelCmdline() {
 static void ProcessBootconfig() {
     android::fs_mgr::ImportBootconfig([&](const std::string& key, const std::string& value) {
         if (StartsWith(key, ANDROIDBOOT_PREFIX)) {
-            InitPropertySet("ro.boot." + key.substr(ANDROIDBOOT_PREFIX.size()), value);
+            if (key.substr(ANDROIDBOOT_PREFIX.size()) == "verifiedbootstate" && value == "yellow") {
+                InitPropertySet("ro.boot.verifiedbootstate", "green");
+            } else {
+                InitPropertySet("ro.boot." + key.substr(ANDROIDBOOT_PREFIX.size()), value);
+            }
         }
     });
 }
